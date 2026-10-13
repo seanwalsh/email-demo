@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useAutoSync, useShipments } from "@/lib/hooks/useShipments";
 import { ShipmentCard } from "./ShipmentCard";
 
@@ -12,12 +11,13 @@ export function Dashboard() {
   const delivered = data?.shipments.filter((s) => s.status === "delivered") ?? [];
 
   return (
-    <div className="flex-1 overflow-y-auto p-8">
-      <div className="mx-auto max-w-3xl">
-        <h1 className="mb-1 text-2xl font-semibold">Inbound packages</h1>
-        <p className="mb-6 text-sm text-zinc-500">
-          Pulled from your email automatically. Shipping emails are marked read and moved to Shipments.
-        </p>
+    <div className="flex flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
+      <div className="flex-1 p-8">
+        <h1 className="text-2xl font-semibold">Dashboard</h1>
+      </div>
+
+      <aside className="w-full shrink-0 border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-800 dark:bg-black lg:w-[26rem] lg:overflow-y-auto lg:border-l">
+        <h2 className="mb-3 text-sm font-semibold">Inbound packages</h2>
 
         {isLoading ? (
           <p className="text-sm text-zinc-500">Checking your mail…</p>
@@ -32,8 +32,8 @@ export function Dashboard() {
         )}
 
         {!!delivered.length && (
-          <details className="mt-6">
-            <summary className="cursor-pointer text-sm text-zinc-500">Delivered ({delivered.length})</summary>
+          <details className="mt-4">
+            <summary className="cursor-pointer text-xs text-zinc-500">Delivered ({delivered.length})</summary>
             <ul className="mt-2 flex flex-col gap-2">
               {delivered.map((s) => (
                 <ShipmentCard key={s.id} s={s} labelId={data!.labelId} />
@@ -41,13 +41,7 @@ export function Dashboard() {
             </ul>
           </details>
         )}
-
-        <p className="mt-10 text-sm">
-          <Link href="/mail/INBOX" className="text-blue-600 hover:underline">
-            Go to inbox →
-          </Link>
-        </p>
-      </div>
+      </aside>
     </div>
   );
 }
