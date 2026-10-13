@@ -66,6 +66,7 @@ function toMessage(msg: gmail_v1.Schema$Message): Message {
   const html = out.html.join("");
   return {
     id: msg.id!,
+    threadId: msg.threadId ?? "",
     from: parseAddress(header(msg, "From")),
     to: parseAddressList(header(msg, "To")),
     cc: parseAddressList(header(msg, "Cc")),
@@ -164,6 +165,46 @@ export class GmailProvider implements MailProvider {
 
   async trashThread(id: string) {
     await this.gmail.users.threads.trash({ userId: "me", id });
+  }
+
+  async searchMessageIds(query: string, max: number): Promise<string[]> {
+    const ids: string[] = [];
+    let pageToken: string | undefined;
+    do {
+      const { data } = await this.gmail.users.messages.list({
+        userId: "me",
+        q: query,
+        maxResults: Math.min(100, max - ids.length),
+        pageToken,
+      });
+      ids.push(...(data.messages ?? []).map((m) => m.id!));
+      pageToken = data.nextPageToken ?? undefined;
+    } while (pageToken && ids.length < max);
+    return ids;
+  }
+
+  async getMessage(id: string): Promise<Message> {
+    const { data } = await this.gmail.users.messages.get({ userId: "me", id, format: "full" });
+    return toMessage(data);
+  }
+
+  async ensureLabel(name: string): Promise<string> {
+    const { data } = await this.gmail.users.labels.list({ userId: "me" });
+    const existing = data.labels?.find((l) => l.name?.toLowerCase() === name.toLowerCase());
+    if (existing) return existing.id!;
+    const created = await this.gmail.users.labels.create({
+      userId: "me",
+      requestBody: { name, labelListVisibility: "labelShow", messageListVisibility: "show" },
+    });
+    return created.data.id!;
+  }
+
+  async modifyMessage(id: string, { addLabelIds, removeLabelIds }: ModifyThreadParams) {
+    await this.gmail.users.messages.modify({
+      userId: "me",
+      id,
+      requestBody: { addLabelIds, removeLabelIds },
+    });
   }
 }
 

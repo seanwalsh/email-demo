@@ -6,7 +6,7 @@ export default function LoginPage() {
       <form
         action={async () => {
           "use server";
-          await signIn("google", { redirectTo: "/mail/INBOX" });
+          await signIn("google", { redirectTo: "/dashboard" });
         }}
       >
         <button className="rounded bg-zinc-900 px-5 py-2.5 text-white dark:bg-white dark:text-black">

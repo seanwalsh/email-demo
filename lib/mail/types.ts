@@ -32,6 +32,7 @@ export interface Attachment {
 
 export interface Message {
   id: string;
+  threadId: string;
   from: Address;
   to: Address[];
   cc: Address[];

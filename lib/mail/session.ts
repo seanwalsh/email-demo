@@ -29,9 +29,14 @@ async function refreshAccessToken(refreshToken: string): Promise<string> {
   return json.access_token;
 }
 
-export async function getMailProvider(req: NextRequest): Promise<MailProvider | null> {
+export interface MailSession {
+  provider: MailProvider;
+  accountId: string;
+}
+
+export async function getMailSession(req: NextRequest): Promise<MailSession | null> {
   const token = await getToken({ req, secret: process.env.AUTH_SECRET });
-  if (!token?.accessToken) return null;
+  if (!token?.accessToken || !token.email) return null;
 
   let accessToken = token.accessToken as string;
   const expiresAt = (token.expiresAt as number | undefined) ?? 0;
@@ -39,5 +44,5 @@ export async function getMailProvider(req: NextRequest): Promise<MailProvider | 
     if (!token.refreshToken) return null;
     accessToken = await refreshAccessToken(token.refreshToken as string);
   }
-  return new GmailProvider(accessToken);
+  return { provider: new GmailProvider(accessToken), accountId: token.email };
 }
